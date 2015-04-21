@@ -7,14 +7,16 @@ package bean;
 
 import com.mongodb.*;
 import com.mongodb.client.*;
-import javax.ws.rs.Consumes;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.descending;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 /**
  *
@@ -31,29 +33,29 @@ public class bridge {
     @GET
     @Produces("application/json")
     public String getAll() {
-        return "";
+        List<Document> foundDocuments = collection.find().sort(descending("update")).limit(25).into(new ArrayList<Document>());
+        
+        String json = "[";
+        
+        for(int i = 0; i < foundDocuments.size(); i++)
+        {
+            json += foundDocuments.get(i).toJson();
+            if(i != foundDocuments.size() - 1)
+            {
+                json += ",";
+            }
+        }
+        
+        json += "]";
+        
+        return json;
     }
     
     @GET
     @Path("/{id}")
     @Produces("application/json")
     public String getBridge(@PathParam("id") String id) {
-        return id;
+        Document myDoc = collection.find(eq("_id", new ObjectId(id))).first();
+        return myDoc.toJson();
     }
-    
-    @POST
-    @Consumes("application/json")
-    public Response test() {
-        Document doc = new Document("name", "MongoDB")
-               .append("type", "database")
-               .append("count", 1)
-               .append("info", new Document("x", 203).append("y", 102));
-        
-        collection.insertOne(doc);
-        
-        Document myDoc = collection.find().first();
-        
-        return Response.status(201).entity(myDoc.toJson()).build();
-    } 
-    
 }
