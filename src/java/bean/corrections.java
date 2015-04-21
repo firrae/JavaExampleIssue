@@ -5,6 +5,7 @@
  */
 package bean;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
@@ -38,27 +39,34 @@ public class corrections {
     @POST
     @Path("/{id}")
     @Consumes("application/json")
-    public Response addCorrection(String str) {
+    public Response addCorrection(String str, @PathParam("id") String id) {
         JsonReader reader = Json.createReader(new StringReader(str));
         JsonObject json = reader.readObject();
-        Document myDoc = collection.find(eq("_id", new ObjectId("5535cb40e3035211001bf489"))).first();
         
-        if(null != json.getString("field")) switch (json.getString("field")) {
-            case "correctionsCanCommercialFlow":
-                myDoc.append("correctionsCanCommercialFlow", "{\"minutes\":" + json.getInt("minutes") + "}");
-                break;
-            case "correctionsUsCommercialFlow":
-                myDoc.append("correctionsUsCommercialFlow", "{\"minutes\":" + json.getInt("minutes") + "}");
-                break;
-            case "correctionsCanTravellersFlow":
-                myDoc.append("correctionsCanTravellersFlow", "{\"minutes\":" + json.getInt("minutes") + "}");
-                break;
-            case "correctionsUsTravellersFlow":
-                myDoc.append("correctionsUsTravellersFlow", "{\"minutes\":" + json.getInt("minutes") + "}");
-                break;
+        Document myDoc = collection.find(eq("_id", new ObjectId(id))).first();
+        BasicDBObject updateCommand = null;
+        
+        System.out.println(json.getString("field"));
+        
+        BasicDBObject docToInsert = new BasicDBObject("minutes", json.getInt("minutes"));
+        
+        System.out.println(docToInsert.toString());
+        
+        if("correctionsCanCommercialFlow".equals(json.getString("field"))) {
+            updateCommand = new BasicDBObject("$push", new BasicDBObject("correctionsCanCommercialFlow", docToInsert));
+        } else if("correctionsUsCommercialFlow".equals(json.getString("field"))) {
+            updateCommand = new BasicDBObject("$push", new BasicDBObject("correctionsUsCommercialFlow", docToInsert));
+        } else if("correctionsCanTravellersFlow".equals(json.getString("field"))) {
+            updateCommand = new BasicDBObject("$push", new BasicDBObject("correctionsCanTravellersFlow", docToInsert));
+        } else if("correctionsUsTravellersFlow".equals(json.getString("field"))) {
+            updateCommand = new BasicDBObject("$push", new BasicDBObject("correctionsUsTravellersFlow", docToInsert));
         }
         
-        collection.replaceOne(Filters.eq("_id", myDoc.get("_id")), myDoc);
+        BasicDBObject updateQuery = new BasicDBObject("_id", new ObjectId(id));
+        
+        if(updateCommand != null) {
+            collection.updateOne(myDoc, updateCommand);
+        }
         
         System.out.println(myDoc.toJson());
         return Response.status(201).build();
