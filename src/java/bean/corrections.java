@@ -67,6 +67,13 @@ public class corrections {
         }
         
         System.out.println(myDoc.toJson());
-        return Response.status(201).build();
+        return Response
+                .status(201)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
+                .header("Access-Control-Max-Age", "1209600")
+                .build();
     }
 }

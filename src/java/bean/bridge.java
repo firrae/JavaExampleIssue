@@ -15,6 +15,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -32,7 +33,7 @@ public class bridge {
     
     @GET
     @Produces("application/json")
-    public String getAll() {
+    public Response getAll() {
         List<Document> foundDocuments = collection.find().sort(descending("update")).limit(25).into(new ArrayList<Document>());
         
         String json = "[";
@@ -48,14 +49,30 @@ public class bridge {
         
         json += "]";
         
-        return json;
+        return Response
+                .ok()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
+                .header("Access-Control-Max-Age", "1209600")
+                .entity(json)
+                .build();
     }
     
     @GET
     @Path("/{id}")
     @Produces("application/json")
-    public String getBridge(@PathParam("id") String id) {
+    public Response getBridge(@PathParam("id") String id) {
         Document myDoc = collection.find(eq("_id", new ObjectId(id))).first();
-        return myDoc.toJson();
+        return Response
+                .ok()
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
+                .header("Access-Control-Max-Age", "1209600")
+                .entity(myDoc.toJson())
+                .build();
     }
 }
